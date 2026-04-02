@@ -1,1 +1,77 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Poki-like Game Portal</title>\n    <style>\n        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }\n        header { background-color: #282c34; color: white; padding: 20px; text-align: center; }\n        #search { margin: 20px; }\n        #game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; padding: 20px; }\n        .game-card { border: 1px solid #ddd; border-radius: 5px; overflow: hidden; text-align: center; }\n        .game-card img { width: 100%; }\n        .game-card h3 { margin: 0; padding: 10px; }\n    </style>\n</head>\n<body>\n    <header>\n        <h1>Welcome to the Game Portal</h1>\n        <input type="text" id="search" placeholder="Search games...">\n    </header>\n    <div id="game-grid">\n        <div class="game-card">\n            <img src="game1.jpg" alt="Game 1">\n            <h3>Game 1</h3>\n        </div>\n        <div class="game-card">\n            <img src="game2.jpg" alt="Game 2">\n            <h3>Game 2</h3>\n        </div>\n        <div class="game-card">\n            <img src="game3.jpg" alt="Game 3">\n            <h3>Game 3</h3>\n        </div>\n        <!-- More games can be added here -->\n    </div>\n    <script>\n        // Basic search functionality implementation\n        const searchInput = document.getElementById('search');\n        searchInput.addEventListener('input', function() {\n            const searchValue = this.value.toLowerCase();\n            const gameCards = document.querySelectorAll('.game-card');\n            gameCards.forEach(card => {\n                const gameTitle = card.querySelector('h3').textContent.toLowerCase();\n                card.style.display = gameTitle.includes(searchValue) ? 'block' : 'none';\n            });\n        });\n    </script>\n</body>\n</html>\n
+// 2D Rocket League-style game implementation
+
+let canvas = document.getElementById('gameCanvas');
+let ctx = canvas.getContext('2d');
+
+let player = { x: 50, y: canvas.height / 2 - 30, width: 10, height: 60, color: 'blue', score: 0 };
+let ai = { x: canvas.width - 60, y: canvas.height / 2 - 30, width: 10, height: 60, color: 'red', score: 0 };
+let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 5, speedX: 5, speedY: 5 };
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.fillStyle = ai.color;
+    ctx.fillRect(ai.x, ai.y, ai.width, ai.height);
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function update() {
+    ball.x += ball.speedX;
+    ball.y += ball.speedY;
+
+    // AI movement
+    ai.y += (ball.y - (ai.y + ai.height / 2)) * 0.05;
+
+    // Ball collision with walls
+    if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+        ball.speedY = -ball.speedY;
+    }
+
+    // Ball collision with paddles
+    if (ball.x - ball.radius < player.x + player.width && ball.y > player.y && ball.y < player.y + player.height) {
+        ball.speedX = -ball.speedX;
+    } else if (ball.x + ball.radius > ai.x && ball.y > ai.y && ball.y < ai.y + ai.height) {
+        ball.speedX = -ball.speedX;
+    }
+
+    // Scoring
+    if (ball.x < 0) {
+        ai.score++;
+        resetBall();
+    } else if (ball.x > canvas.width) {
+        player.score++;
+        resetBall();
+    }
+}
+
+function resetBall() {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    ball.speedX = 5 * (Math.random() > 0.5 ? 1 : -1);
+    ball.speedY = 5 * (Math.random() > 0.5 ? 1 : -1);
+}
+
+function keyDownHandler(e) {
+    if (e.key === 'ArrowUp' && player.y > 0) {
+        player.y -= 20;
+    } else if (e.key === 'ArrowDown' && player.y < canvas.height - player.height) {
+        player.y += 20;
+    }
+}
+
+document.addEventListener('keydown', keyDownHandler);
+
+function gameLoop() {
+    draw();
+    update();
+    requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop);
+
+// GFA branding
+console.log('Game powered by GFA');
